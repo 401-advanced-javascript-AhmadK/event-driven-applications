@@ -1,98 +1,44 @@
-/* eslint-disable no-unused-vars */
 'use strict';
 
-const edit = require('../lib/edit-file');
-const path = require('path');
+jest.mock('fs');
+const event = require('../src/events.js');
 
-describe('Read file Module', () => {
-  let file = `${__dirname}/data/person.json`;
-  it('when given a bad file, return an error', () => {
-    edit.readerFile(file, (err, data) => {
+require('../src/logger.js');
+// require('../src/error.js');
+const mocks = require('../__mocks__/fs.js');
+
+let readFile = mocks.readFile;
+let writeFile = mocks.writeFile;
+
+// describe('error event', () => {
+//   it('it should console log an error event when an error has happend', () => {
+//     expect(event.emit('error', 'you are wrong', 'booom')).toBeTruthy();
+//   });
+// });
+
+// describe('log event', () => {
+//   it('it should log a message when a save has happend', () => {
+//     expect(event.emit('log', 'saved!!!', 'don not wory')).toBeTruthy();
+//   });
+// });
+
+
+describe('read File method', () => {
+  it('Read a file', () => {
+    let fileToRead = 'anyFile.txt';
+    return readFile(fileToRead, (err, data) => {
       expect(err).toBeUndefined();
-    });
-  });
-  it('when given the same file, return content', () => {
-    edit.readerFile(file, (err, data) => {
-      expect(typeof data).toBe('string');
+      expect(data).toEqual(Buffer.from(fileToRead));
     });
   });
 });
 
-describe('update file Module', () => {
-
-  it('check if Accepts a file name as a command line parameter', () => {
-    let file = `${__dirname}/data/person.json`;
-    let fileName = path.basename(file);
-    process.argv.push(fileName);
-    expect(process.argv[process.argv.length - 1]).toEqual(fileName);
+describe('write File method', () => {
+  it('Write a file', () => {
+    let fileToWrite = 'testFile.txt';
+    return writeFile(fileToWrite, (err, data) => {
+      expect(err).toBeUndefined();
+      expect(data).toEqual(Buffer.from(fileToWrite));
+    });
   });
-  it('Alter firstname value in the object file', () => {
-    let file = `${__dirname}/data/person.json`;
-    return edit.readerFile(file)
-      .then((data) => {
-        let jsonData = JSON.parse(data.toString().trim());
-        return jsonData;
-      })
-      .then((data) => {
-        data.firstName = 'Shakespeare';
-        let bufferData = Buffer.from(JSON.stringify(data));
-        return edit.editFile(file, bufferData);
-      })
-      .then(() => {
-        return edit.readerFile(file)
-          .then((data) => {
-            let jsonData = JSON.parse(data.toString().trim());
-            return expect(jsonData.firstName).toEqual('Shakespeare');
-          });
-      })
-      .catch((error) => { return error; });
-
-  });
-
-  it('Make sure the other values remain the same after altering', () => {
-    let file = `${__dirname}/data/person.json`;
-    return edit.readerFile(file)
-      .then((data) => {
-        let jsonData = JSON.parse(data.toString().trim());
-        return jsonData;
-      })
-      .then((data) => {
-        data.firstName = 'INSTA';
-        let buffData = Buffer.from(JSON.stringify(data));
-        return edit.editFile(file, buffData);
-      })
-      .then(() => {
-        return edit.readerFile(file)
-          .then((data) => {
-            let jsonData = JSON.parse(data.toString().trim());
-            return expect(jsonData.lastName).toEqual('Scissorhands');
-          });
-      })
-      .catch((error) => { return error; });
-
-  });
-
-  it('Data format do not change after using the write method', () => {
-    let file = `${__dirname}/data/person.json`;
-    return edit.readerFile(file)
-      .then((data) => {
-        let jsonData = JSON.parse(data.toString().trim());
-        return jsonData;
-      })
-      .then((data) => {
-        data.firstName = 'INSTA';
-        let buffData = Buffer.from(JSON.stringify(data));
-        return edit.editFile(file, buffData);
-      })
-      .then(() => {
-        return edit.readerFile(file)
-          .then((data) => {
-            let jsonData = data.toString().trim();
-            return expect(typeof (jsonData)).toEqual('string');
-          });
-      })
-      .catch((error) => { return error; });
-
-  });
-
 });
